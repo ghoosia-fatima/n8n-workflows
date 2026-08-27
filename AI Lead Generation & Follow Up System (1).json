@@ -1,0 +1,220 @@
+{
+  "name": "AI Lead Generation & Follow Up System",
+  "nodes": [
+    {
+      "parameters": {
+        "sendTo": "=ghoosiafatima8@gmail.com",
+        "subject": "Thank You For Contacting Us",
+        "message": "Dear Ghoosia Fatima,  Thank you for contacting us regarding a WiFi connection.  We would be happy to assist you in setting up the best internet solution for your needs. To help us recommend the most suitable package, please share the following details:  * Your location or area * Number of devices you want to connect * Preferred internet speed or usage requirements  Once we receive this information, our team will guide you with the available options and pricing.  We look forward to assisting you.  Best regards, Support Team",
+        "options": {}
+      },
+      "id": "d8a53641-5bba-4978-b05a-18bccdb05bdd",
+      "name": "Send Follow Up Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        656,
+        320
+      ],
+      "webhookId": "642d61b9-fcc6-48e3-980d-457650d6f743",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5mZVBdSMazyDxnkl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"status\": \"success\", \"message\": \"Lead processed successfully\" }",
+        "options": {}
+      },
+      "id": "28a25a37-bddc-4f0c-aa0d-004935480873",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        928,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Name: {{ $json.body.name }}\n\nEmail:{{ $json.body.email }}\n\nPhone:{{ $json.body.phone }}\nMessage:{{ $json.body.massage }}\n\nAnalyze this lead and return:\n1. Lead Summary\n2. Intent\n3. Urgency\n4. Professional Reply",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        16,
+        336
+      ],
+      "id": "635be853-320a-424a-b7db-4e919695017a",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        16,
+        144
+      ],
+      "id": "1fcdf4a5-c250-4731-be12-aeaf042e6a92",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "LEe8GchAwbmqygZm",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1fNEI0cflUMekeQSY45yKg7uhA_S-6dz2643Xvihd9XU",
+          "mode": "list",
+          "cachedResultName": "sheets.new",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fNEI0cflUMekeQSY45yKg7uhA_S-6dz2643Xvihd9XU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fNEI0cflUMekeQSY45yKg7uhA_S-6dz2643Xvihd9XU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "text"
+          ],
+          "schema": [
+            {
+              "id": "text",
+              "displayName": "text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b3328969-a6a4-489d-b70e-c1c2e6ffce95",
+      "name": "Save Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        400,
+        336
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "s0oeiGYBsxGQNuij",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-lead-system",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "dbcf94dc-5e96-494a-b11f-59a4f50521bd",
+      "name": "Lead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        272
+      ],
+      "webhookId": "4f883f21-6a8e-4ca3-8ca1-fa6aee338394"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Send Follow Up Email": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Save Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Lead": {
+      "main": [
+        [
+          {
+            "node": "Send Follow Up Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Webhook": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "0a4a53d0-4ebd-4122-9ace-33f3c76c4d7b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cde936facb361a6e65f819c054d0711581cdbd4fe978c7b3ec49b28535df4145"
+  },
+  "id": "HmQ7anURUIWnpspp",
+  "tags": []
+}
